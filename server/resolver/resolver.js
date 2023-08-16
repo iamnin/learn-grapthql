@@ -1,34 +1,28 @@
 const { books, authors } = require("../data/static");
+const Author = require("../model/Author");
+const Book = require("../model/Book");
 
 const resolvers = {
   // QUERY
   Query: {
-    books: () => books,
-    book: (parent, args) =>
-      books.find((book) => book.id.toString() === args.id),
-    authors: () => authors,
-    author: (parent, args) =>
-      authors.find((author) => author.id.toString() === args.id),
+    books: async (parent, args, context) => {
+      return await context.mongoDataMethods.getAllBooks()
+    },
+    book: async (parent, {id}, {mongoDataMethods}) => await mongoDataMethods.getBookById(id),
+    authors: async () => await mongoDataMethods.getAllAuthors(),
+    author: async (parent, {id}, {mongoDataMethods}) => await mongoDataMethods.getAuthorById(id)
   },
   Book: {
-    author: (parent) => {
-      return authors.find((author) => author.id == parent.authorId);
-    },
+    author: async ({authorId}, parent, {mongoDataMethods}) => await mongoDataMethods.getAuthorById(authorId)
   },
   Author: {
-    books: (parent, args) => {
-      return books.filter((book) => book.authorId == parent.id);
-    },
+    books: async ({id}, parent, {mongoDataMethods}) => await mongoDataMethods.getAllBooks({authorId: id})
   },
 
   //   MUTATION
   Mutation: {
-    createAuthor: (parent, args) => {
-      return args;
-    },
-    createBook: (parent, args) => {
-      return args;
-    },
+    createAuthor: async (parent, args, {mongoDataMethods}) => await mongoDataMethods.createAuthor(args),
+    createBook: async (parent, args, {mongoDataMethods}) => await mongoDataMethods.createBook(args),
   },
 };
 
